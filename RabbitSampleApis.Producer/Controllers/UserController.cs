@@ -32,8 +32,8 @@ public class UserController : ControllerBase
     {
         if (id <= 0)
             return BadRequest("Invalid request data");
-        var userDto = new GetUserRequestDto(id);
         
+        var userDto = new GetUserRequestDto(id);
         _mqService.SendMessage(userDto);
         return Ok(userDto);
     }
@@ -53,8 +53,8 @@ public class UserController : ControllerBase
     {
         if (id <= 0)
             return BadRequest("Invalid request data");
-        var userDto = new DeleteUserRequestDto(id);
         
+        var userDto = new DeleteUserRequestDto(id);
         _mqService.SendMessage(userDto);
         return Ok();
     }
