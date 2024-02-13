@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using RabbitSampleApis.Consumer.Model;
+using RabbitSampleApis.UserService.Model;
 
-namespace RabbitSampleApis.Consumer.Context;
+namespace RabbitSampleApis.UserService.Context;
 
 public class AppDbContext : DbContext
 {
-    public virtual DbSet<User?> Users { get; set; }
+    public virtual DbSet<User> Users { get; set; }
     public AppDbContext()
     {}
     

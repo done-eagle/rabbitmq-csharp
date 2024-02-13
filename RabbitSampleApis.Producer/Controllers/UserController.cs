@@ -1,6 +1,7 @@
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using RabbitSampleApis.Helper.Dto;
-using RabbitSampleApis.Helper.RabbitMq;
+using RabbitSampleApis.SharedModels;
 
 namespace RabbitSampleApis.Producer.Controllers;
 
@@ -8,54 +9,71 @@ namespace RabbitSampleApis.Producer.Controllers;
 [Route("api/[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly IRabbitMqService _mqService;
+    private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<UserController> _logger;
-    
-    public UserController(ILogger<UserController> logger, IRabbitMqService mqService)
+
+    public UserController(IPublishEndpoint publishEndpoint, ILogger<UserController> logger)
     {
+        _publishEndpoint = publishEndpoint;
         _logger = logger;
-        _mqService = mqService;
     }
     
     [HttpPost]
-    public ActionResult AddUser([FromBody] AddUserRequestDto? userDto)
+    public async Task<ActionResult> CreateUser([FromBody] AddUserRequestDto? userDto)
     {
         if (userDto == null)
             return BadRequest("Invalid request data");
         
-        _mqService.SendMessage(userDto);
+        await _publishEndpoint.Publish<IUserCreated>(new
+        {
+            userDto.Name,
+            userDto.Email
+        });
+        
         return Ok();
     }
     
-    [HttpGet("{id}")]
-    public IActionResult GetUserById(int id)
+    [HttpGet]
+    public async Task <ActionResult> GetUserById([FromBody] GetUserRequestDto? userDto)
     {
-        if (id <= 0)
+        if (userDto == null)
             return BadRequest("Invalid request data");
         
-        var userDto = new GetUserRequestDto(id);
-        _mqService.SendMessage(userDto);
+        await _publishEndpoint.Publish<IUserReceived>(new
+        {
+            userDto.Id
+        });
+        
         return Ok(userDto);
     }
     
     [HttpPut]
-    public IActionResult UpdateUser([FromBody] UpdateUserRequestDto? userDto)
+    public async Task<ActionResult> UpdateUser([FromBody] UpdateUserRequestDto? userDto)
     {
         if (userDto == null)
             return BadRequest("Invalid request data");
         
-        _mqService.SendMessage(userDto);
+        await _publishEndpoint.Publish<IUserUpdated>(new
+        {
+            userDto.Id,
+            userDto.Name,
+            userDto.Email
+        });
+        
         return Ok();
     }
     
-    [HttpDelete("{id}")]
-    public IActionResult DeleteUser(int id)
+    [HttpDelete]
+    public async Task<ActionResult> DeleteUser([FromBody] DeleteUserRequestDto? userDto)
     {
-        if (id <= 0)
+        if (userDto == null)
             return BadRequest("Invalid request data");
         
-        var userDto = new DeleteUserRequestDto(id);
-        _mqService.SendMessage(userDto);
+        await _publishEndpoint.Publish<IUserDeleted>(new
+        {
+            userDto.Id
+        });
+        
         return Ok();
     }
 }

@@ -1,4 +1,4 @@
-using RabbitSampleApis.Helper.RabbitMq;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,8 +7,18 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddLogging();
-builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();
-builder.Services.AddScoped<RabbitMqListener>();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context,cfg) =>
+    {
+        cfg.Host(new Uri("rabbitmq://localhost"), h =>
+        {
+            h.Username("rmuser");
+            h.Password("rmpassword");
+        });
+    });
+});
 
 var app = builder.Build();
 

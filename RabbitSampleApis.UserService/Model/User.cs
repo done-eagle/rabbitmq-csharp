@@ -1,4 +1,4 @@
-namespace RabbitSampleApis.Consumer.Model;
+namespace RabbitSampleApis.UserService.Model;
 
 public class User
 {
