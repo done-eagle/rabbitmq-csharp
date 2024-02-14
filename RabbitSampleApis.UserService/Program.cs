@@ -21,24 +21,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<UserCreatedConsumer>();
+builder.Services.AddScoped<UserUpdatedConsumer>();
 
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<UserCreatedConsumer>();
-    
-    // x.UsingRabbitMq((context,cfg) =>
-    // {
-    //     cfg.Host(new Uri("rabbitmq://localhost"), h =>
-    //     {
-    //         h.Username("rmuser");
-    //         h.Password("rmpassword");
-    //     });
-    //     
-    //     cfg.ReceiveEndpoint("user-created-event", e =>
-    //     {
-    //         e.Consumer<UserCreatedConsumer>();
-    //     });
-    // });
+    x.AddConsumer<UserUpdatedConsumer>();
     
     x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
     {
@@ -51,6 +39,11 @@ builder.Services.AddMassTransit(x =>
         cfg.ReceiveEndpoint("user-created-event", ep =>
         {
             ep.ConfigureConsumer<UserCreatedConsumer>(provider);
+        });
+        
+        cfg.ReceiveEndpoint("user-updated-event", ep =>
+        {
+            ep.ConfigureConsumer<UserUpdatedConsumer>(provider);
         });
     }));
 });
