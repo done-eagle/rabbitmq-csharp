@@ -1,7 +1,7 @@
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
-using RabbitSampleApis.Helper.Dto;
 using RabbitSampleApis.SharedModels;
+using RabbitSampleApis.SharedModels.Dto;
 
 namespace RabbitSampleApis.Producer.Controllers;
 
@@ -10,12 +10,12 @@ namespace RabbitSampleApis.Producer.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly ILogger<UserController> _logger;
+    private readonly IRequestClient<IUserReceived> _getUserRequestClient;
 
-    public UserController(IPublishEndpoint publishEndpoint, ILogger<UserController> logger)
+    public UserController(IPublishEndpoint publishEndpoint, IRequestClient<IUserReceived> getUserRequestClient)
     {
         _publishEndpoint = publishEndpoint;
-        _logger = logger;
+        _getUserRequestClient = getUserRequestClient;
     }
     
     [HttpPost]
@@ -34,17 +34,17 @@ public class UserController : ControllerBase
     }
     
     [HttpGet]
-    public async Task <ActionResult> GetUserById([FromBody] GetUserRequestDto? userDto)
+    public async Task<ActionResult> GetUserById([FromBody] GetUserRequestDto? userDto)
     {
         if (userDto == null)
             return BadRequest("Invalid request data");
         
-        await _publishEndpoint.Publish<IUserReceived>(new
+        var response = await _getUserRequestClient.GetResponse<GetUserResponseDto>(new
         {
             userDto.Id
         });
         
-        return Ok(userDto);
+        return Ok(response.Message);
     }
     
     [HttpPut]

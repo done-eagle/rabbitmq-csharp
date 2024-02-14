@@ -1,6 +1,6 @@
-namespace RabbitSampleApis.Helper.Dto;
+namespace RabbitSampleApis.SharedModels.Dto;
 
-public class UpdateUserRequestDto
+public class GetUserResponseDto
 {
     public int Id { get; set; }
     public string Name { get; set; }

@@ -20,17 +20,22 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddScoped<UserCreatedConsumer>();
+builder.Services.AddScoped<UserReceivedConsumer>();
 builder.Services.AddScoped<UserUpdatedConsumer>();
+builder.Services.AddScoped<UserDeletedConsumer>();
 
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<UserCreatedConsumer>();
+    x.AddConsumer<UserReceivedConsumer>();
     x.AddConsumer<UserUpdatedConsumer>();
+    x.AddConsumer<UserDeletedConsumer>();
     
     x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
     {
-        cfg.Host("rabbitmq://localhost", h =>
+        cfg.Host(new Uri("rabbitmq://localhost"), h =>
         {
             h.Username("rmuser");
             h.Password("rmpassword");
@@ -41,9 +46,19 @@ builder.Services.AddMassTransit(x =>
             ep.ConfigureConsumer<UserCreatedConsumer>(provider);
         });
         
+        cfg.ReceiveEndpoint("user-received-event", ep =>
+        {
+            ep.ConfigureConsumer<UserReceivedConsumer>(provider);
+        });
+        
         cfg.ReceiveEndpoint("user-updated-event", ep =>
         {
             ep.ConfigureConsumer<UserUpdatedConsumer>(provider);
+        });
+        
+        cfg.ReceiveEndpoint("user-deleted-event", ep =>
+        {
+            ep.ConfigureConsumer<UserDeletedConsumer>(provider);
         });
     }));
 });

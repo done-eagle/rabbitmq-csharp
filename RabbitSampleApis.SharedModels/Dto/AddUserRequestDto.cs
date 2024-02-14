@@ -1,4 +1,4 @@
-namespace RabbitSampleApis.Helper.Dto;
+namespace RabbitSampleApis.SharedModels.Dto;
 
 public class AddUserRequestDto
 {
