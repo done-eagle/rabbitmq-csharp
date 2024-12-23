@@ -1,4 +1,4 @@
-version: "2.1"
+
 services:
   rabbitmq:
     image: rabbitmq:3.10.7-management
@@ -13,3 +13,45 @@ services:
     ports:
       - 15672:15672
       - 5672:5672
+    networks:
+      - my_bridge_network
+
+  postgres:
+    image: library/postgres:${KC_POSTGRES_IMAGE_TAG:-14}
+    container_name: rabbitmq-postgres
+    restart: on-failure
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: InfoUser
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - my_bridge_network
+    ports:
+      - "5432:5432"
+  
+  rabbitmq-api:
+    build: .
+    container_name: rabbitmq-web-api
+    environment:
+      DB_HOST: rabbitmq-postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: admin
+      DB_NAME: InfoUser
+    networks:
+      - my_bridge_network
+    ports:
+      - "6000:6000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  my_bridge_network:
+    driver: bridge
